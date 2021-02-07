@@ -18,6 +18,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.camera_jetbot, name="camera_jetbot"),
-    path(r'^stream/$', views.stream, name='stream'),
+    path('live/', views.live, name="live"),
+    path('stream/', views.stream, name='stream'),
+    path('moving/<int:move>/', views.moving, name='moving'),
 ]

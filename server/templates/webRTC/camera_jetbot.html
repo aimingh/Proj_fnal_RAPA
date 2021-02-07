@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="row">
+    <div class="col-md-2"></div>
+    <div class="col-md-8 panel panel-default"><br>
+        <h1>Test</h1>
+        <h3>Camera Live</h3>
+        <!-- stream camera -->
+        <div class="con"><img style="-webkit-user-select: none;" src="{% url 'stream' %}" width="640" height="240"></div>
+        <!-- button -->
+        <div class="btn-group"><a href="/webRTC/moving/1" class="btn btn-outline-danger" role="button">Start</a></div>
+        <div class="btn-group"><a href="/webRTC/moving/0" class="btn btn-outline-danger" role="button">Stop</a></div>
+    </div>
+    <div class="col-md-2"></div>
+</div>
+
+{% endblock %}

@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'home.apps.HomeConfig',
     'webRTC.apps.WebrtcConfig',
     'django.contrib.admin',
     'django.contrib.auth',
