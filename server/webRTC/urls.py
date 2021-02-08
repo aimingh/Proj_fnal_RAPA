@@ -20,5 +20,7 @@ from . import views
 urlpatterns = [
     path('live/', views.live, name="live"),
     path('stream/', views.stream, name='stream'),
-    path('moving/<int:move>/', views.moving, name='moving'),
+    path('avoidance/', views.avoidance, name='avoidance'),
+    path('cruise/', views.cruise, name='cruise'),
+    path('move_arrow/', views.move_arrow, name='move_arrow'),
 ]

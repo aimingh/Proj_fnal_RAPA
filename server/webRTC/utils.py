@@ -12,7 +12,9 @@ class VideoCamera(object):
     def __init__(self):
         # jetbot setting
         self.robot = Robot()
-        self.move = False
+        self.avoidance_status = False
+        self.cruise_status = False
+        self.move_arrow = 'stop'
         self.n = 0.0
         self.direction = ""
         self.pw = 1
@@ -73,13 +75,13 @@ class VideoCamera(object):
         self.n_right = np.sum(self.floor_rander[:,240:])
 
     def update_jetbot(self):
-        if self.move:
+        if self.avoidance_status and self.cruise_status:
             if self.n > 6000:
                 self.direction = "Straight"
                 self.robot.set_motors(self.pw*self.left_power, self.pw*self.right_power)
             elif self.n < 2000:
-                self.direction = "stop"
-                self.robot.stop()
+                self.direction = "back"
+                self.robot.set_motors(-self.pw*self.left_power, -self.pw*self.right_power)
             elif self.n_right >= self.n_left + 100:
                 self.direction = "right"
                 self.robot.set_motors(0.75*self.left_power, -0.75*self.right_power)
@@ -88,9 +90,70 @@ class VideoCamera(object):
                 self.robot.set_motors(-0.75*self.left_power, 0.75*self.right_power)
             else:
                 self.direction = "Unknown"
+                self.robot.set_motors(0.75*self.left_power, -0.75*self.right_power)
+        elif self.cruise_status:
+            if self.move_arrow == "stop":
+                self.direction = "stop"
+                self.robot.stop()
+            elif self.move_arrow == "up":
+                self.direction = "Straight"
+                self.robot.set_motors(self.pw*self.left_power, self.pw*self.right_power)
+            elif self.move_arrow == "down":
+                self.direction = "back"
                 self.robot.set_motors(-self.pw*self.left_power, -self.pw*self.right_power)
+            elif self.move_arrow == "left":
+                self.direction = "left"
+                self.robot.set_motors(-0.75*self.left_power, 0.75*self.right_power)
+            elif self.move_arrow == "right":
+                self.direction = "right"
+                self.robot.set_motors(0.75*self.left_power, -0.75*self.right_power)
+            else:
+                self.direction = "Unknown"
+                self.robot.stop()
+        elif self.avoidance_status:
+            if self.move_arrow == "stop":
+                self.direction = "stop"
+                self.robot.stop()
+            elif self.move_arrow == "up":
+                if self.n > 6000:
+                    self.direction = "Straight"
+                    self.robot.set_motors(self.pw*self.left_power, self.pw*self.right_power)
+                else:
+                    self.direction = "stop with avoidance"
+                    self.robot.stop()
+                    self.move_arrow = "stop"
+            elif self.move_arrow == "down":
+                self.direction = "back"
+                self.robot.set_motors(-self.pw*self.left_power, -self.pw*self.right_power)
+            elif self.move_arrow == "left":
+                self.direction = "left"
+                self.robot.set_motors(-0.75*self.left_power, 0.75*self.right_power)
+            elif self.move_arrow == "right":
+                self.direction = "right"
+                self.robot.set_motors(0.75*self.left_power, -0.75*self.right_power)
+            else:
+                self.direction = "Unknown"
+                self.robot.stop()
         else:
-            self.robot.stop()
+            if self.move_arrow == "stop":
+                self.direction = "stop"
+                self.robot.stop()
+            elif self.move_arrow == "up":
+                self.direction = "Straight"
+                self.robot.set_motors(self.pw*self.left_power, self.pw*self.right_power)
+            elif self.move_arrow == "down":
+                self.direction = "back"
+                self.robot.set_motors(-self.pw*self.left_power, -self.pw*self.right_power)
+            elif self.move_arrow == "left":
+                self.direction = "left"
+                self.robot.set_motors(-0.75*self.left_power, 0.75*self.right_power)
+            elif self.move_arrow == "right":
+                self.direction = "right"
+                self.robot.set_motors(0.75*self.left_power, -0.75*self.right_power)
+            else:
+                self.direction = "Unknown"
+                self.robot.stop()
+            self.move_arrow = "stop"
 
     def get_frame(self):
         image = self.img_rander
@@ -101,7 +164,7 @@ class VideoCamera(object):
         # roi visualization
         tmp = cv2.resize(self.floor_rander, dsize=(0, 0), fx=2, fy=2, interpolation=cv2.INTER_LINEAR)
         tmp = np.stack((255*tmp,)*3,axis = 2)
-        result = np.concatenate((image, tmp, detect_img),axis=0)
+        result = np.concatenate((detect_img, image, tmp, ),axis=0)
         ret, jpeg = cv2.imencode('.jpg', result)
         return jpeg.tobytes()
 

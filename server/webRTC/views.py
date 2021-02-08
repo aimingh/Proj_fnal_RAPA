@@ -9,8 +9,9 @@ from django.shortcuts import redirect
 #################################################################################################
 # Live
 #################################################################################################
+
 import time
-from django.http import StreamingHttpResponse
+from django.http import StreamingHttpResponse, HttpResponse
 from webRTC.utils import VideoCamera
 from django.views.decorators.csrf import csrf_exempt
 
@@ -29,13 +30,29 @@ def stream(request):
     except:
         print("error streaming camera")
 
-# change moving status
-def moving(request, move):
-    if move ==0:
-        cam.move = False
-    else:
-        cam.move = True
-    return redirect("live")
+@csrf_exempt
+def avoidance(request):
+    if (request.method == 'POST'):  # ajax에서 정보를 받는다.
+        avoidance_status = request.POST.get('avoidance_status')
+        cam.avoidance_status = True if avoidance_status=='1' else False
+        print(cam.avoidance_status)
+        return HttpResponse("receive")
+
+@csrf_exempt
+def cruise(request):
+    if (request.method == 'POST'):  # ajax에서 정보를 받는다.
+        cruise_status = request.POST.get('cruise_status')
+        cam.cruise_status = True if cruise_status=='1' else False
+        print(cam.cruise_status)
+        return HttpResponse("receive")
+
+@csrf_exempt
+def move_arrow(request):
+    if (request.method == 'POST'):  # ajax에서 정보를 받는다.
+        move_arrow = request.POST.get('move_arrow')
+        cam.move_arrow = move_arrow
+        print(move_arrow)
+        return HttpResponse("receive")
 
 # live 
 def live(request):
