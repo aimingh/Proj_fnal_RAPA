@@ -125,10 +125,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# #js, css 등 위치 지정하기 settings.py 
-# STATICFILES_DIRS=[
-#     os.path.join(BASE_DIR, 'static')
-# ]
+#js, css 등 위치 지정하기 settings.py 
+STATICFILES_DIRS=[os.path.join(BASE_DIR, 'static'),]
 
 # # 미디어 파일을 관리할 루트 media 디렉터리
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
