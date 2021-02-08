@@ -3,6 +3,7 @@ import socket
 import numpy as np
 import time
 import cv2
+import sys
 import jetson.inference
 import jetson.utils
 from jetbot import Robot
@@ -18,7 +19,8 @@ class VideoCamera(object):
         self.left_power = (0.15)
         self.right_power = (0.145)
         # deep learning model setting
-        self.set_model()
+        self.set_detect_model()
+        self.set_seg_model()
         self.roi = [(0, 120),(80, 60),(160, 120),]
         # camera setting
         self.cap = cv2.VideoCapture(1)
@@ -33,21 +35,20 @@ class VideoCamera(object):
         self.cap.release()
         self.robot.stop()
 
-    def set_model(self):
-        self.model = "fcn-resnet18-sun"
-        self.overlay_Alpha = 150
-        self.filter_mode = "linear" # choices=["point", "linear"]
-        self.ignore_class = "toilet"
-        self.net = jetson.inference.segNet(self.model)
-        self.net.SetOverlayAlpha(self.overlay_Alpha)
-        self.buffers = segmentationBuffers(self.net)
+    def set_seg_model(self):
+        self.segNet = jetson.inference.segNet("fcn-resnet18-sun")
+        self.segNet.SetOverlayAlpha(150)
+        self.buffers = segmentationBuffers(self.segNet)
+
+    def set_detect_model(self):
+        self.detectNet = jetson.inference.detectNet("ssd-mobilenet-v2")
 
     def get_seg(self):
         img = jetson.utils.cudaFromNumpy(self.frame)
         self.buffers.Alloc(img.shape, img.format)
-        self.net.Process(img, ignore_class=self.ignore_class)
-        self.net.Overlay(self.buffers.overlay, filter_mode=self.filter_mode) 
-        self.net.Mask(self.buffers.mask, filter_mode=self.filter_mode)
+        self.segNet.Process(img, ignore_class="toilet")
+        self.segNet.Overlay(self.buffers.overlay, filter_mode="linear") 
+        self.segNet.Mask(self.buffers.mask, filter_mode="linear")
 
         self.img_rander = jetson.utils.cudaToNumpy(self.buffers.overlay)
         self.mask_rander = jetson.utils.cudaToNumpy(self.buffers.mask)
@@ -59,12 +60,17 @@ class VideoCamera(object):
 
         self.floor_rander[:,:160] = mask_roi(self.floor_rander[:,:160], self.roi)
         self.floor_rander[:,160:] = mask_roi(self.floor_rander[:,160:], self.roi)
+        self.get_score()
+
+    def get_detect(self):
+        img = jetson.utils.cudaFromNumpy(self.frame)
+        detections = self.detectNet.Detect(img, overlay="box,labels,conf")
+        self.img_detect_rander = jetson.utils.cudaToNumpy(img)
 
     def get_score(self):
-        self.n = np.sum(self.floor_mask)
+        self.n = np.sum(self.floor_rander)
         self.n_left = np.sum(self.floor_rander[:,:80])
         self.n_right = np.sum(self.floor_rander[:,240:])
-        
 
     def update_jetbot(self):
         if self.move:
@@ -74,27 +80,28 @@ class VideoCamera(object):
             elif self.n < 2000:
                 self.direction = "stop"
                 self.robot.stop()
-            elif self.n_right >= self.n_left + 300:
+            elif self.n_right >= self.n_left + 100:
                 self.direction = "right"
                 self.robot.set_motors(0.75*self.left_power, -0.75*self.right_power)
-            elif self.n_left > self.n_right + 300:
+            elif self.n_left > self.n_right + 100:
                 self.direction = "left"
                 self.robot.set_motors(-0.75*self.left_power, 0.75*self.right_power)
             else:
                 self.direction = "Unknown"
-                self.robot.stop()
+                self.robot.set_motors(-self.pw*self.left_power, -self.pw*self.right_power)
         else:
             self.robot.stop()
 
     def get_frame(self):
         image = self.img_rander
-        text = f'floor: {self.n:0.2f}, left_n: {self.n_left}, right_n{self.n_right}, direction: {self.direction}'
+        detect_img = self.img_detect_rander
+        text = f'floor: {self.n:0.2f}, left_n: {self.n_left}, right_n: {self.n_right}, direction: {self.direction}'
         image = cv2.putText(image, text, (5,15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA) 
         ret, jpeg = cv2.imencode('.jpg', image)
-        # roi visulization
+        # roi visualization
         tmp = cv2.resize(self.floor_rander, dsize=(0, 0), fx=2, fy=2, interpolation=cv2.INTER_LINEAR)
         tmp = np.stack((255*tmp,)*3,axis = 2)
-        result = np.concatenate((image, tmp),axis=0)
+        result = np.concatenate((image, tmp, detect_img),axis=0)
         ret, jpeg = cv2.imencode('.jpg', result)
         return jpeg.tobytes()
 
@@ -102,8 +109,11 @@ class VideoCamera(object):
         while True:
             start = time.time()
             (self.grabbed, self.frame) = self.cap.read()
+            # segmentation
             self.get_seg()
-            self.get_score()
+            # detection
+            self.get_detect()
+            # update jetbot
             self.update_jetbot()
             end = time.time() - start
             if end < 0.1:
