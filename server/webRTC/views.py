@@ -62,8 +62,8 @@ recording_flag = False
 
 def record_video(cam):
     print('Recording start')
-    fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-    out = cv2.VideoWriter('static/videos/output.avi', fourcc, 10.0, (640,720))
+    fourcc = cv2.VideoWriter_fourcc(*'avc1')
+    out = cv2.VideoWriter('static/videos/output.mp4', fourcc, 10.0, (640,720))
     while (recording_flag):
         frame = cam.result
         out.write(frame)

@@ -1,9 +1,24 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
-<video width="640" height="720" controls>
-    <source src="{% static 'videos:output.avi' %}" type="video/mp4">
-    <source src="{% static 'videos:output.avi' %}" type="video/ogg">
-    Your browser does not support the video tag.
-</video>
+
+<div class="row">
+    <div class="col-md-2"></div>
+    <div class="col-md-4 panel panel-default">
+        <h1>저장된 기록</h1>
+        <h3>저장된 비디오 기록</h3>
+    </div>
+    <div class="col-md-2"></div>
+</div>
+
+<div class="row">
+    <div class="col-md-2"></div>
+    <div class="col-md-4 panel panel-default">
+        <video width="640" height="720" controls autoplay>
+            <source src="{% static 'videos/output.mp4' %}" type="video/mp4">
+        </video>
+    </div>
+    <div class="col-md-2"></div>
+</div>
+
 {% endblock %}
