@@ -2,10 +2,6 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 
 # Create your views here.
-# def camera_jetbot(request):
-#     return render(request, "camera_jetbot.html")
-
-
 #################################################################################################
 # Live
 #################################################################################################
@@ -57,3 +53,29 @@ def move_arrow(request):
 # live 
 def live(request):
     return render(request, 'webRTC/camera_jetbot.html')
+
+
+# Record video
+import threading
+import cv2
+recording_flag = False
+
+def record_video(cam):
+    print('Recording start')
+    fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+    out = cv2.VideoWriter('static/videos/output.avi', fourcc, 10.0, (640,720))
+    while (recording_flag):
+        frame = cam.result
+        out.write(frame)
+    print('Recording end')
+    out.release()
+
+@csrf_exempt
+def record(request):
+    global recording_flag
+    global cam
+    if (request.method == 'POST'):  # ajax에서 정보를 받는다.
+        recording_flag = not recording_flag
+        if recording_flag:
+            threading.Thread(target=record_video, args=(cam,)).start()
+        return HttpResponse("receive")

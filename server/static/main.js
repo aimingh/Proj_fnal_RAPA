@@ -1,16 +1,22 @@
 'use strict';
 var avoidance_toggleBtn = document.getElementById('avoidance_toggle'); 
 var cruise_toggleBtn = document.getElementById('cruise_toggle'); 
+var record_toggleBtn = document.getElementById('record_toggle'); 
+
 var upBtn = document.getElementById('up'); 
 var downBtn = document.getElementById('down'); 
 var leftBtn = document.getElementById('left'); 
 var rightBtn = document.getElementById('right'); 
 var stopBtn = document.getElementById('stop'); 
+
 var t_avoidance_toggle = false;
 var t_cruise_toggle = false;
+var t_record_toggle = false;
 
 avoidance_toggleBtn.addEventListener('click', avoidance_toggleRecord);
 cruise_toggleBtn.addEventListener('click', cruise_toggleRecord);
+record_toggleBtn.addEventListener('click', record_toggleRecord);
+
 upBtn.addEventListener('click', upRecord);
 downBtn.addEventListener('click', downRecord);
 leftBtn.addEventListener('click', leftRecord);
@@ -53,6 +59,27 @@ function cruise_toggleRecord(){
             type: "POST", 
             url:'/webRTC/cruise/',
             data: {'cruise_status': 0}      
+        }).done(function(msg){ 
+            console.log('check'); 
+        });
+    } 
+}
+
+function record_toggleRecord(){
+    t_record_toggle = !t_record_toggle;
+    if (t_record_toggle == true){
+        $.ajax({
+            type: "POST", 
+            url:'/webRTC/record/',
+            data: {}      
+        }).done(function(msg){ 
+            console.log('check'); 
+        });
+    }else{
+        $.ajax({
+            type: "POST", 
+            url:'/webRTC/record/',
+            data: {}      
         }).done(function(msg){ 
             console.log('check'); 
         });

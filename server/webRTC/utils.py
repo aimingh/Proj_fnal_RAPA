@@ -165,6 +165,7 @@ class VideoCamera(object):
         tmp = cv2.resize(self.floor_rander, dsize=(0, 0), fx=2, fy=2, interpolation=cv2.INTER_LINEAR)
         tmp = np.stack((255*tmp,)*3,axis = 2)
         result = np.concatenate((detect_img, image, tmp, ),axis=0)
+        self.result = result
         ret, jpeg = cv2.imencode('.jpg', result)
         return jpeg.tobytes()
 

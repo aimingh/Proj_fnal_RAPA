@@ -23,4 +23,5 @@ urlpatterns = [
     path('avoidance/', views.avoidance, name='avoidance'),
     path('cruise/', views.cruise, name='cruise'),
     path('move_arrow/', views.move_arrow, name='move_arrow'),
+    path('record/', views.record, name='record'),
 ]
