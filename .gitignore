@@ -4,3 +4,4 @@ server/static/YOLOv3/.ipynb_checkpoints/*
 server/static/YOLOv3/yolov3.cfg
 server/static/YOLOv3/yolov3.weights
 server/*/.ipynb_checkpoints/
+server/static/videos/output.mp4

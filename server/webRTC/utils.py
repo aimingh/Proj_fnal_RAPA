@@ -18,6 +18,7 @@ class VideoCamera(object):
         self.n = 0.0
         self.direction = ""
         self.pw = 1
+        self.pw_c = 1.5
         self.left_power = (0.15)
         self.right_power = (0.145)
         # deep learning model setting
@@ -97,7 +98,7 @@ class VideoCamera(object):
                 self.robot.stop()
             elif self.move_arrow == "up":
                 self.direction = "Straight"
-                self.robot.set_motors(self.pw*self.left_power, self.pw*self.right_power)
+                self.robot.set_motors(self.pw_c*self.left_power, self.pw_c*self.right_power)
             elif self.move_arrow == "down":
                 self.direction = "back"
                 self.robot.set_motors(-self.pw*self.left_power, -self.pw*self.right_power)
@@ -117,7 +118,7 @@ class VideoCamera(object):
             elif self.move_arrow == "up":
                 if self.n > 6000:
                     self.direction = "Straight"
-                    self.robot.set_motors(self.pw*self.left_power, self.pw*self.right_power)
+                    self.robot.set_motors(self.pw_c*self.left_power, self.pw_c*self.right_power)
                 else:
                     self.direction = "stop with avoidance"
                     self.robot.stop()
